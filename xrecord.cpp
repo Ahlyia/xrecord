@@ -23,11 +23,12 @@ std::string FetchSaveDirectory() {
 }
 
 int main() {
+    system("clear");
     std::string saveDir = FetchSaveDirectory();
 
     if (saveDir == "") {
         std::cout << "No set saveDirectory, using default.\nTo change this, edit 'preferences.json'\n\n";
-        if (std::filesystem::is_directory("./output")) {}
+        if (fs::is_directory("./output")) {}
         else {
             system("mkdir ./output/");
         }
@@ -35,8 +36,33 @@ int main() {
         saveDir = "./output/";
     }   
 
-    const char* command = "wf-recorder --audio --file GRAH.mp4";
-    system("clear");
+    int n_files = 1;
+
+    for (const auto& entry : fs::directory_iterator(saveDir)) {
+        if (fs::is_regular_file(entry)) {
+            n_files += 1;
+        }
+    }
+
+    std::string filename = std::to_string(n_files);
+    while (filename.length() < 4) {
+        filename = "0" + filename;
+    }
+    filename = filename + "-xrecord.mp4";
+    filename = saveDir + filename;
+
+    const std::string command = "wf-recorder --audio --file "+filename;
+
+    std::cout << "wf-recorder --audio --file "+filename+"\n\n";
+
+    FILE* pipe = popen(command.c_str(),"r");
+    if (!pipe) {
+        std::cerr << "pOpen failed..\n";
+        return 1;
+    } 
+
+    std::string _;
+    std::cin >> _;
 
     return 0;
 }
